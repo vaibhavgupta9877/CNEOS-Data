@@ -1,0 +1,22 @@
+{
+	"name": "CneosData",
+	"properties": {
+		"Name": "CneosData",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://cneosproject@myazurefreetier.dfs.core.windows.net/CneosData",
+			"Properties": {
+				"FormatType": "parquet",
+				"LinkedServiceName": "freesynapsefreetier-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
