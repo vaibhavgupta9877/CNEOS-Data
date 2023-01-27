@@ -1,0 +1,17 @@
+{
+	"name": "Synapse Demo",
+	"properties": {
+		"content": {
+			"query": "-- CREATE DATABASE DEMO_SYNAPSE\n\n-- VISUALIZE CSV FILE\n\n-- SELECT TOP 10 *\n-- FROM OPENROWSET(\n--     BULK\n--     'https://myazurefreetier.blob.core.windows.net/synapseanalytics/demoinput/imartdatafile.csv',\n--     FORMAT = 'csv',\n--     PARSER_VERSION = '2.0',\n--     FIRSTROW =2) AS ROWS\n\n-- BASIC TABLE CREATION\n-- CREATE OR ALTER VIEW imartview AS\n-- SELECT *\n-- FROM\n--     OPENROWSET(\n--         BULK 'https://myazurefreetier.blob.core.windows.net/synapseanalytics/demoinput/imartdatafile.csv',\n--         FORMAT = 'CSV',\n--         PARSER_VERSION='2.0',\n--         FIRSTROW = 2\n--     ) \n-- \tWITH (\n--     \t\t[Date] datetime2(3),\n--         \t[DateKey] decimal(38,0),\n--         \t[MonthKey] decimal(38,0)\n-- \t) AS ROWS;\n\n\n-- SELECT * FROM imartview\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "DEMO_SYNAPSE",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
