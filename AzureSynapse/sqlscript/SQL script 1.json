@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 1",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [TransactionId]\n,[CustomerId]\n,[ProductId]\n,[Quantity]\n,[Price]\n,[TotalAmount]\n,[TransactionDate]\n,[ProfitAmount]\n,[Hour]\n,[Minute]\n,[StoreId]\n FROM [imart_external].[Sales]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "demosynapse",
+				"poolName": "demosynapse"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
