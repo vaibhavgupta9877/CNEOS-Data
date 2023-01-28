@@ -13,7 +13,16 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": [],
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "cneosproject/processedData/asteroidSummary.parquet"
+					},
+					{
+						"name": "Destination",
+						"value": "dbo.asteroisdsummary"
+					}
+				],
 				"typeProperties": {
 					"source": {
 						"type": "ParquetSource",
