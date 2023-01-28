@@ -20,7 +20,7 @@
 					},
 					{
 						"name": "Destination",
-						"value": "dbo.asteroisdsummary"
+						"value": "dbo.asteroidsummary"
 					}
 				],
 				"typeProperties": {
