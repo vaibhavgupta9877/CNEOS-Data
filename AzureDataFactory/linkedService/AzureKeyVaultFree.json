@@ -1,0 +1,10 @@
+{
+	"name": "AzureKeyVaultFree",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://mykeyvaultfree.vault.azure.net/"
+		}
+	}
+}
