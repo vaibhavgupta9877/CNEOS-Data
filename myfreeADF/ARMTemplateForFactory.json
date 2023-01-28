@@ -836,7 +836,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "rawSparkInput.parquet",
+						"fileName": "rawInput.parquet",
 						"folderPath": "rawInput",
 						"fileSystem": "cneosproject"
 					},
