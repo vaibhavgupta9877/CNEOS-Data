@@ -215,7 +215,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "CNEOSMasterStats",
+						"referenceName": "MasterStatsSQLSink",
 						"type": "DatasetReference"
 					}
 				]
