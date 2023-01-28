@@ -48,6 +48,36 @@
 					"secureInput": false
 				},
 				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Legacy"
+				},
+				"linkedServiceName": {
+					"referenceName": "CneosDataGenerator",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Cneos Weekly Data Extractor",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Checking Raw Legacy Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Weekly"
+				},
 				"linkedServiceName": {
 					"referenceName": "CneosDataGenerator",
 					"type": "LinkedServiceReference"
