@@ -1,0 +1,78 @@
+{
+	"name": "ReadingRawFile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "rawSparkInput.parquet",
+				"folderPath": "rawInput",
+				"fileSystem": "cneosproject"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "Designation",
+				"type": "UTF8"
+			},
+			{
+				"name": "Orbit_Id",
+				"type": "UTF8"
+			},
+			{
+				"name": "Time_of_Close_approach",
+				"type": "UTF8"
+			},
+			{
+				"name": "Close_Approach_Date",
+				"type": "UTF8"
+			},
+			{
+				"name": "Nominal_Approch_distance_au",
+				"type": "UTF8"
+			},
+			{
+				"name": "Min_Close_Approach_Distance_au",
+				"type": "UTF8"
+			},
+			{
+				"name": "Max_Close_Approach_Distance_au",
+				"type": "UTF8"
+			},
+			{
+				"name": "V_Reletive_Kms",
+				"type": "UTF8"
+			},
+			{
+				"name": "V_Infinite_Kms",
+				"type": "UTF8"
+			},
+			{
+				"name": "Close_Approach_Uncertain_Time",
+				"type": "UTF8"
+			},
+			{
+				"name": "Absolute_Magnitude_mag",
+				"type": "UTF8"
+			},
+			{
+				"name": "Diameter_Km",
+				"type": "UTF8"
+			},
+			{
+				"name": "Diameter_Sigma_Km",
+				"type": "UTF8"
+			},
+			{
+				"name": "Object",
+				"type": "UTF8"
+			}
+		]
+	}
+}

@@ -1,0 +1,169 @@
+{
+	"name": "CNEOS_Data_Tracker",
+	"properties": {
+		"activities": [
+			{
+				"name": "Checking Raw Legacy Data",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"dataset": {
+						"referenceName": "ReadingRawFile",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Copy Master Stats Data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Cneos Weekly Data Extractor_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_Data_Master_Basic_Stats_SQL_DB",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Copy Asteroid Summary",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Copy Master Stats Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_Asteroid_Summary_SQL_DB",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Cneos Weekly Data Extractor_copy1",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Checking Raw Legacy Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Weekly"
+				},
+				"linkedServiceName": {
+					"referenceName": "CneosDataGenerator",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Cneos Legacy Data Extractor Copy",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Checking Raw Legacy Data",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Legacy"
+				},
+				"linkedServiceName": {
+					"referenceName": "CneosDataGenerator",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Copy Master Stats Data_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Cneos Legacy Data Extractor Copy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_Data_Master_Basic_Stats_SQL_DB",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Copy Asteroid Summary_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Copy Master Stats Data_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_Asteroid_Summary_SQL_DB",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}

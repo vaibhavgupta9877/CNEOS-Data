@@ -1,0 +1,78 @@
+{
+	"name": "MasterBasicStatsInput",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "masterBasicStats.parquet",
+				"folderPath": "processedData",
+				"fileSystem": "cneosproject"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "Designation",
+				"type": "UTF8"
+			},
+			{
+				"name": "Close_Approach_TimeStamp",
+				"type": "TIMESTAMP_MICROS"
+			},
+			{
+				"name": "Close_Approach_Date_formatted",
+				"type": "UTF8"
+			},
+			{
+				"name": "Orbit_Id",
+				"type": "UTF8"
+			},
+			{
+				"name": "Nominal_Approch_distance_au",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Nominal_Approch_distance_km",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Min_Close_Approach_Distance_au",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Min_Close_Approach_Distance_km",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Max_Close_Approach_Distance_au",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Max_Close_Approach_Distance_km",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "V_Reletive_Kms",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "V_Infinite_Kms",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Absolute_Magnitude_mag",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Diameter_Km",
+				"type": "UTF8"
+			}
+		]
+	}
+}

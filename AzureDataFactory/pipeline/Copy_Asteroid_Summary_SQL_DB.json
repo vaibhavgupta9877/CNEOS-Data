@@ -1,0 +1,166 @@
+{
+	"name": "Copy_Asteroid_Summary_SQL_DB",
+	"properties": {
+		"activities": [
+			{
+				"name": "AsteroidSummary to SQL DB",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "cneosproject/processedData/asteroidSummary.parquet"
+					},
+					{
+						"name": "Destination",
+						"value": "dbo.asteroisdsummary"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Designation",
+									"type": "String",
+									"physicalType": "UTF8"
+								},
+								"sink": {
+									"name": "Designation",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "No_of_Occurances",
+									"type": "Int64",
+									"physicalType": "INT64"
+								},
+								"sink": {
+									"name": "No_of_Occurances",
+									"type": "Int64",
+									"physicalType": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "Orbit_Id",
+									"type": "String",
+									"physicalType": "UTF8"
+								},
+								"sink": {
+									"name": "Orbit_Id",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Min_Close_Approach_Distance_au",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Min_Close_Approach_Distance_au",
+									"type": "Double",
+									"physicalType": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Max_Close_Approach_Distance_au",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Max_Close_Approach_Distance_au",
+									"type": "Double",
+									"physicalType": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Mean_V_Reletive_Kms",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Mean_V_Reletive_Kms",
+									"type": "Double",
+									"physicalType": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Mean_Absolute_Magnitude_mag",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Mean_Absolute_Magnitude_mag",
+									"type": "Double",
+									"physicalType": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Diameter_Km",
+									"type": "String",
+									"physicalType": "UTF8"
+								},
+								"sink": {
+									"name": "Diameter_Km",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AsteroidSummaryInput",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CNEOSMasterStats",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}

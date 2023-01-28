@@ -1,0 +1,54 @@
+{
+	"name": "AsteroidSummaryInput",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "asteroidSummary.parquet",
+				"folderPath": "processedData",
+				"fileSystem": "cneosproject"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "Designation",
+				"type": "UTF8"
+			},
+			{
+				"name": "No_of_Occurances",
+				"type": "INT64"
+			},
+			{
+				"name": "Orbit_Id",
+				"type": "UTF8"
+			},
+			{
+				"name": "Min_Close_Approach_Distance_au",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Max_Close_Approach_Distance_au",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Mean_V_Reletive_Kms",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Mean_Absolute_Magnitude_mag",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Diameter_Km",
+				"type": "UTF8"
+			}
+		]
+	}
+}

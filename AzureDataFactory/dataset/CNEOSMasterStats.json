@@ -1,0 +1,16 @@
+{
+	"name": "CNEOSMasterStats",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CneosSQLDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "masterbasicstats"
+		}
+	}
+}
