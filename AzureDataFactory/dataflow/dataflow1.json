@@ -15,7 +15,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "CNEOSMasterStats",
+						"referenceName": "MasterStatsSQLSink",
 						"type": "DatasetReference"
 					},
 					"name": "MasterBasicSQLDB"
