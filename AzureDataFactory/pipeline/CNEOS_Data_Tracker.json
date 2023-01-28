@@ -30,65 +30,11 @@
 				}
 			},
 			{
-				"name": "Cneos Legacy Data Extractor",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "Checking Raw Legacy Data",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Legacy"
-				},
-				"linkedServiceName": {
-					"referenceName": "CneosDataGenerator",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "Cneos Weekly Data Extractor",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "Checking Raw Legacy Data",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Weekly"
-				},
-				"linkedServiceName": {
-					"referenceName": "CneosDataGenerator",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
 				"name": "Copy Master Stats Data",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Cneos Weekly Data Extractor",
+						"activity": "If Condition1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -126,14 +72,7 @@
 			{
 				"name": "Copy Master Stats Data_copy1",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Cneos Legacy Data Extractor",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -161,6 +100,58 @@
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"ifFalseActivities": [
+						{
+							"name": "Cneos Legacy Data Extractor",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Legacy"
+							},
+							"linkedServiceName": {
+								"referenceName": "CneosDataGenerator",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Cneos Weekly Data Extractor",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Weekly"
+							},
+							"linkedServiceName": {
+								"referenceName": "CneosDataGenerator",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
 				}
 			}
 		],
