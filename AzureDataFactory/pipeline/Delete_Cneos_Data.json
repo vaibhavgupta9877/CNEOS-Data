@@ -66,7 +66,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "ReadingRawFile",
+						"referenceName": "RawFileSource",
 						"type": "DatasetReference"
 					},
 					"enableLogging": false,

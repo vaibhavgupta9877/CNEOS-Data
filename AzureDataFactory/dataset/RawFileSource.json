@@ -1,5 +1,5 @@
 {
-	"name": "ReadingRawFile",
+	"name": "RawFileSource",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage",

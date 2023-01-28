@@ -24,7 +24,7 @@
 						}
 					},
 					"dataset": {
-						"referenceName": "ReadingRawFile",
+						"referenceName": "RawFileSource",
 						"type": "DatasetReference"
 					}
 				}
