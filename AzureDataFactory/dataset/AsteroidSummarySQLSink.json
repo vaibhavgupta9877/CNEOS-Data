@@ -1,0 +1,12 @@
+{
+	"name": "AsteroidSummarySQLSink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CneosSQLDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
