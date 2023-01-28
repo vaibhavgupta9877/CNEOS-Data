@@ -108,6 +108,26 @@
 					},
 					"waitOnCompletion": true
 				}
+			},
+			{
+				"name": "Copy Asteroid Summary",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Copy Master Stats Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_Asteroid_Summary_SQL_DB",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
 			}
 		],
 		"annotations": []
