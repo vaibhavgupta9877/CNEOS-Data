@@ -1,0 +1,18 @@
+{
+	"name": "RawInputDelete",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LSRawInputSource",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "rawInput",
+				"container": "cneosproject"
+			}
+		}
+	}
+}
