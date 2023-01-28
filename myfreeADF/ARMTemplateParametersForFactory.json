@@ -8,6 +8,9 @@
 		"AzureDataLakeStorage_accountKey": {
 			"value": ""
 		},
+		"CneosDataGenerator_accessToken": {
+			"value": ""
+		},
 		"CneosSQLDatabase_connectionString": {
 			"value": ""
 		},
@@ -16,6 +19,9 @@
 		},
 		"AzureKeyVaultFree_properties_typeProperties_baseUrl": {
 			"value": "https://mykeyvaultfree.vault.azure.net/"
+		},
+		"CneosDataGenerator_properties_typeProperties_existingClusterId": {
+			"value": "0128-115905-5vkbhijl"
 		}
 	}
 }
