@@ -14,6 +14,9 @@
 		"CneosSQLDatabase_connectionString": {
 			"value": ""
 		},
+		"LSRawInputSource_connectionString": {
+			"value": ""
+		},
 		"AzureDataLakeStorage_properties_typeProperties_url": {
 			"value": "https://myazurefreetier.dfs.core.windows.net/"
 		},
