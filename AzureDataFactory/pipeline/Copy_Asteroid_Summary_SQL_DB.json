@@ -149,13 +149,13 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "AsteroidSummaryInput",
+						"referenceName": "AsteroidSummaryParquetSource",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "CNEOSMasterStats",
+						"referenceName": "AsteroidSummarySQLSink",
 						"type": "DatasetReference"
 					}
 				]
