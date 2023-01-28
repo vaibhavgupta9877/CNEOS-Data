@@ -66,13 +66,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "RawFileSource",
+						"referenceName": "RawInputDelete",
 						"type": "DatasetReference"
 					},
 					"enableLogging": false,
 					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"fileListPath": "cneosproject/rawInput",
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"wildcardFileName": "*",
 						"enablePartitionDiscovery": false
 					}
 				}
