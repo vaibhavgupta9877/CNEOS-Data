@@ -846,6 +846,103 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Delete_Cneos_Data')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Delete Structured",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "MasterBasicStatsInput",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"fileListPath": "cneosproject/structureddata",
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "Delete Processed",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "MasterBasicStatsInput",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"fileListPath": "cneosproject/processedData",
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "Delete Raw",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ReadingRawFile",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"fileListPath": "cneosproject/rawInput",
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/MasterBasicStatsInput')]",
+				"[concat(variables('factoryId'), '/datasets/ReadingRawFile')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/CNEOS_Data_Tracker')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -880,7 +977,7 @@
 						}
 					},
 					{
-						"name": "Copy Master Stats Data",
+						"name": "Copy Master Stats Data Weekly",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
@@ -901,11 +998,11 @@
 						}
 					},
 					{
-						"name": "Copy Asteroid Summary",
+						"name": "Copy Asteroid Summary Weekly",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Copy Master Stats Data",
+								"activity": "Copy Master Stats Data Weekly",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -976,7 +1073,7 @@
 						}
 					},
 					{
-						"name": "Copy Master Stats Data_copy1",
+						"name": "Copy Master Stats Data Legacy",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
@@ -997,11 +1094,11 @@
 						}
 					},
 					{
-						"name": "Copy Asteroid Summary_copy1",
+						"name": "Copy Asteroid Summary Legacy",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Copy Master Stats Data_copy1",
+								"activity": "Copy Master Stats Data Legacy",
 								"dependencyConditions": [
 									"Succeeded"
 								]
