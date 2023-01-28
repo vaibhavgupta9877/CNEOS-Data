@@ -1,5 +1,5 @@
 {
-	"name": "AsteroidSummaryInput",
+	"name": "AsteroidSummaryParquetSource",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage",
