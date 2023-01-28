@@ -1,0 +1,59 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MasterBasicStatsInput",
+						"type": "DatasetReference"
+					},
+					"name": "MasterBasicParquet"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "CNEOSMasterStats",
+						"type": "DatasetReference"
+					},
+					"name": "MasterBasicSQLDB"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          Designation as string,",
+				"          Close_Approach_TimeStamp as timestamp,",
+				"          Close_Approach_Date_formatted as string,",
+				"          Orbit_Id as string,",
+				"          Nominal_Approch_distance_au as double,",
+				"          Nominal_Approch_distance_km as double,",
+				"          Min_Close_Approach_Distance_au as double,",
+				"          Min_Close_Approach_Distance_km as double,",
+				"          Max_Close_Approach_Distance_au as double,",
+				"          Max_Close_Approach_Distance_km as double,",
+				"          V_Reletive_Kms as double,",
+				"          V_Infinite_Kms as double,",
+				"          Absolute_Magnitude_mag as double,",
+				"          Diameter_Km as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> MasterBasicParquet",
+				"MasterBasicParquet sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> MasterBasicSQLDB"
+			]
+		}
+	}
+}
