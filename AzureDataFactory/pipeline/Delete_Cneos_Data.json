@@ -16,13 +16,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "MasterBasicStatsInput",
+						"referenceName": "StructuredDelete",
 						"type": "DatasetReference"
 					},
 					"enableLogging": false,
 					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"fileListPath": "cneosproject/structureddata",
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"wildcardFileName": "*",
 						"enablePartitionDiscovery": false
 					}
 				}
@@ -41,13 +42,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "MasterBasicStatsInput",
+						"referenceName": "ProcessedDelete",
 						"type": "DatasetReference"
 					},
 					"enableLogging": false,
 					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"fileListPath": "cneosproject/processedData",
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"wildcardFileName": "*",
 						"enablePartitionDiscovery": false
 					}
 				}
