@@ -30,7 +30,7 @@
 				}
 			},
 			{
-				"name": "Copy Master Stats Data",
+				"name": "Copy Master Stats Data Weekly",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
@@ -50,11 +50,11 @@
 				}
 			},
 			{
-				"name": "Copy Asteroid Summary",
+				"name": "Copy Asteroid Summary Weekly",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Copy Master Stats Data",
+						"activity": "Copy Master Stats Data Weekly",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -124,7 +124,7 @@
 				}
 			},
 			{
-				"name": "Copy Master Stats Data_copy1",
+				"name": "Copy Master Stats Data Legacy",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
@@ -144,11 +144,11 @@
 				}
 			},
 			{
-				"name": "Copy Asteroid Summary_copy1",
+				"name": "Copy Asteroid Summary Legacy",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Copy Master Stats Data_copy1",
+						"activity": "Copy Master Stats Data Legacy",
 						"dependencyConditions": [
 							"Succeeded"
 						]
