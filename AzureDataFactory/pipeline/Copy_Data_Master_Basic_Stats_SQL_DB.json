@@ -13,7 +13,16 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": [],
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "cneosproject/processedData/masterBasicStats.parquet"
+					},
+					{
+						"name": "Destination",
+						"value": "dbo.masterbasicstats"
+					}
+				],
 				"typeProperties": {
 					"source": {
 						"type": "ParquetSource",
