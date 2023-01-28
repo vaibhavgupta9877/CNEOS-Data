@@ -71,34 +71,49 @@
 						}
 					},
 					{
-						"name": "Cneos Legacy Data Extractor",
-						"type": "DatabricksNotebook",
+						"name": "Copy Master Stats Data",
+						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Checking Raw Legacy Data",
+								"activity": "Cneos Weekly Data Extractor_copy1",
 								"dependencyConditions": [
-									"Failed"
+									"Succeeded"
 								]
 							}
 						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
 						"userProperties": [],
 						"typeProperties": {
-							"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Legacy"
-						},
-						"linkedServiceName": {
-							"referenceName": "CneosDataGenerator",
-							"type": "LinkedServiceReference"
+							"pipeline": {
+								"referenceName": "Copy_Data_Master_Basic_Stats_SQL_DB",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
 						}
 					},
 					{
-						"name": "Cneos Weekly Data Extractor",
+						"name": "Copy Asteroid Summary",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Copy Master Stats Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Copy_Asteroid_Summary_SQL_DB",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Cneos Weekly Data Extractor_copy1",
 						"type": "DatabricksNotebook",
 						"dependsOn": [
 							{
@@ -125,19 +140,13 @@
 						}
 					},
 					{
-						"name": "MasterBasicStats to SQL DB",
-						"type": "Copy",
+						"name": "Cneos Legacy Data Extractor Copy",
+						"type": "DatabricksNotebook",
 						"dependsOn": [
 							{
-								"activity": "Cneos Weekly Data Extractor",
+								"activity": "Checking Raw Legacy Data",
 								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Cneos Legacy Data Extractor",
-								"dependencyConditions": [
-									"Succeeded"
+									"Failed"
 								]
 							}
 						],
@@ -149,6 +158,275 @@
 							"secureInput": false
 						},
 						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/vaibhavgupta9877@gmail.com/CNEOS_Data/ADF-CNEOS-Data-Legacy"
+						},
+						"linkedServiceName": {
+							"referenceName": "CneosDataGenerator",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Copy Master Stats Data_copy1",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Cneos Legacy Data Extractor Copy",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Copy_Data_Master_Basic_Stats_SQL_DB",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Copy Asteroid Summary_copy1",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Copy Master Stats Data_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Copy_Asteroid_Summary_SQL_DB",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ReadingRawFile')]",
+				"[concat(variables('factoryId'), '/pipelines/Copy_Data_Master_Basic_Stats_SQL_DB')]",
+				"[concat(variables('factoryId'), '/pipelines/Copy_Asteroid_Summary_SQL_DB')]",
+				"[concat(variables('factoryId'), '/linkedServices/CneosDataGenerator')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy_Asteroid_Summary_SQL_DB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AsteroidSummary to SQL DB",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "cneosproject/processedData/asteroidSummary.parquet"
+							},
+							{
+								"name": "Destination",
+								"value": "dbo.asteroidsummary"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Designation",
+											"type": "String",
+											"physicalType": "UTF8"
+										},
+										"sink": {
+											"name": "Designation",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "No_of_Occurances",
+											"type": "Int64",
+											"physicalType": "INT64"
+										},
+										"sink": {
+											"name": "No_of_Occurances",
+											"type": "Int64",
+											"physicalType": "Int64"
+										}
+									},
+									{
+										"source": {
+											"name": "Orbit_Id",
+											"type": "String",
+											"physicalType": "UTF8"
+										},
+										"sink": {
+											"name": "Orbit_Id",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Min_Close_Approach_Distance_au",
+											"type": "Double",
+											"physicalType": "DOUBLE"
+										},
+										"sink": {
+											"name": "Min_Close_Approach_Distance_au",
+											"type": "Double",
+											"physicalType": "Double"
+										}
+									},
+									{
+										"source": {
+											"name": "Max_Close_Approach_Distance_au",
+											"type": "Double",
+											"physicalType": "DOUBLE"
+										},
+										"sink": {
+											"name": "Max_Close_Approach_Distance_au",
+											"type": "Double",
+											"physicalType": "Double"
+										}
+									},
+									{
+										"source": {
+											"name": "Mean_V_Reletive_Kms",
+											"type": "Double",
+											"physicalType": "DOUBLE"
+										},
+										"sink": {
+											"name": "Mean_V_Reletive_Kms",
+											"type": "Double",
+											"physicalType": "Double"
+										}
+									},
+									{
+										"source": {
+											"name": "Mean_Absolute_Magnitude_mag",
+											"type": "Double",
+											"physicalType": "DOUBLE"
+										},
+										"sink": {
+											"name": "Mean_Absolute_Magnitude_mag",
+											"type": "Double",
+											"physicalType": "Double"
+										}
+									},
+									{
+										"source": {
+											"name": "Diameter_Km",
+											"type": "String",
+											"physicalType": "UTF8"
+										},
+										"sink": {
+											"name": "Diameter_Km",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AsteroidSummaryParquetSource",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AsteroidSummarySQLSink",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AsteroidSummaryParquetSource')]",
+				"[concat(variables('factoryId'), '/datasets/AsteroidSummarySQLSink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy_Data_Master_Basic_Stats_SQL_DB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "MasterBasicStats to SQL DB",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "cneosproject/processedData/masterBasicStats.parquet"
+							},
+							{
+								"name": "Destination",
+								"value": "dbo.masterbasicstats"
+							}
+						],
 						"typeProperties": {
 							"source": {
 								"type": "ParquetSource",
@@ -342,165 +620,7 @@
 						],
 						"outputs": [
 							{
-								"referenceName": "CNEOSMasterStats",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "AsteroidSummary to SQL DB",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "MasterBasicStats to SQL DB",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "ParquetSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								}
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "Designation",
-											"type": "String",
-											"physicalType": "UTF8"
-										},
-										"sink": {
-											"name": "Designation",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "No_of_Occurances",
-											"type": "Int64",
-											"physicalType": "INT64"
-										},
-										"sink": {
-											"name": "No_of_Occurances",
-											"type": "Int64",
-											"physicalType": "Int64"
-										}
-									},
-									{
-										"source": {
-											"name": "Orbit_Id",
-											"type": "String",
-											"physicalType": "UTF8"
-										},
-										"sink": {
-											"name": "Orbit_Id",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Min_Close_Approach_Distance_au",
-											"type": "Double",
-											"physicalType": "DOUBLE"
-										},
-										"sink": {
-											"name": "Min_Close_Approach_Distance_au",
-											"type": "Double",
-											"physicalType": "Double"
-										}
-									},
-									{
-										"source": {
-											"name": "Max_Close_Approach_Distance_au",
-											"type": "Double",
-											"physicalType": "DOUBLE"
-										},
-										"sink": {
-											"name": "Max_Close_Approach_Distance_au",
-											"type": "Double",
-											"physicalType": "Double"
-										}
-									},
-									{
-										"source": {
-											"name": "Mean_V_Reletive_Kms",
-											"type": "Double",
-											"physicalType": "DOUBLE"
-										},
-										"sink": {
-											"name": "Mean_V_Reletive_Kms",
-											"type": "Double",
-											"physicalType": "Double"
-										}
-									},
-									{
-										"source": {
-											"name": "Mean_Absolute_Magnitude_mag",
-											"type": "Double",
-											"physicalType": "DOUBLE"
-										},
-										"sink": {
-											"name": "Mean_Absolute_Magnitude_mag",
-											"type": "Double",
-											"physicalType": "Double"
-										}
-									},
-									{
-										"source": {
-											"name": "Diameter_Km",
-											"type": "String",
-											"physicalType": "UTF8"
-										},
-										"sink": {
-											"name": "Diameter_Km",
-											"type": "String",
-											"physicalType": "String"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "AsteroidSummaryInput",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "CNEOSMasterStats",
+								"referenceName": "MasterStatsSQLSink",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -514,15 +634,12 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ReadingRawFile')]",
-				"[concat(variables('factoryId'), '/linkedServices/CneosDataGenerator')]",
 				"[concat(variables('factoryId'), '/datasets/MasterBasicStatsInput')]",
-				"[concat(variables('factoryId'), '/datasets/CNEOSMasterStats')]",
-				"[concat(variables('factoryId'), '/datasets/AsteroidSummaryInput')]"
+				"[concat(variables('factoryId'), '/datasets/MasterStatsSQLSink')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AsteroidSummaryInput')]",
+			"name": "[concat(parameters('factoryName'), '/AsteroidSummaryParquetSource')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -581,7 +698,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/CNEOSMasterStats')]",
+			"name": "[concat(parameters('factoryName'), '/AsteroidSummarySQLSink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -594,7 +711,7 @@
 				"schema": [],
 				"typeProperties": {
 					"schema": "dbo",
-					"table": "masterbasicstats"
+					"table": "asteroidsummary"
 				}
 			},
 			"dependsOn": [
@@ -682,6 +799,27 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MasterStatsSQLSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "CneosSQLDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "masterbasicstats"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/CneosSQLDatabase')]"
 			]
 		},
 		{
@@ -827,6 +965,71 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MasterBasicStatsInput",
+								"type": "DatasetReference"
+							},
+							"name": "MasterBasicParquet"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "MasterStatsSQLSink",
+								"type": "DatasetReference"
+							},
+							"name": "MasterBasicSQLDB"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          Designation as string,",
+						"          Close_Approach_TimeStamp as timestamp,",
+						"          Close_Approach_Date_formatted as string,",
+						"          Orbit_Id as string,",
+						"          Nominal_Approch_distance_au as double,",
+						"          Nominal_Approch_distance_km as double,",
+						"          Min_Close_Approach_Distance_au as double,",
+						"          Min_Close_Approach_Distance_km as double,",
+						"          Max_Close_Approach_Distance_au as double,",
+						"          Max_Close_Approach_Distance_km as double,",
+						"          V_Reletive_Kms as double,",
+						"          V_Infinite_Kms as double,",
+						"          Absolute_Magnitude_mag as double,",
+						"          Diameter_Km as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> MasterBasicParquet",
+						"MasterBasicParquet sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> MasterBasicSQLDB"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/MasterBasicStatsInput')]",
+				"[concat(variables('factoryId'), '/datasets/MasterStatsSQLSink')]"
+			]
 		}
 	]
 }
