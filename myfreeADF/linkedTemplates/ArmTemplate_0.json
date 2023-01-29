@@ -278,6 +278,35 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/MasterBasicStatsSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "MasterBasicStats.csv",
+						"folderPath": "processedData",
+						"fileSystem": "cneosproject"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/MasterStatsSQLSink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -296,6 +325,29 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/CneosSQLDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessedDelete')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LSRawInputSource",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "processedData",
+						"container": "cneosproject"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LSRawInputSource')]"
 			]
 		},
 		{
@@ -405,29 +457,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ProcessedDelete')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSRawInputSource",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"folderPath": "processedData",
-						"container": "cneosproject"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSRawInputSource')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/StructuredDelete')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -448,35 +477,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LSRawInputSource')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/MasterBasicStatsSink')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureDataLakeStorage",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "MasterBasicStats.csv",
-						"folderPath": "processedData",
-						"fileSystem": "cneosproject"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
 			]
 		},
 		{
@@ -517,6 +517,7 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE [dbo].[asteroidsummary]",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
 								"tableOption": "autoCreate",
@@ -695,6 +696,7 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE [dbo].[masterbasicstats]",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
 								"tableOption": "autoCreate",
