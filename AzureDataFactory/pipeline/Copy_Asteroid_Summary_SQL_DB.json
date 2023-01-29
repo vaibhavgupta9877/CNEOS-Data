@@ -63,8 +63,7 @@
 									"physicalType": "DOUBLE"
 								},
 								"sink": {
-									"name": "Id",
-									"type": "Double",
+									"name": "Last_Approach_Time",
 									"physicalType": "Double"
 								}
 							},
