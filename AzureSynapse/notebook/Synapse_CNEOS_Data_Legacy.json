@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "f88f09d6-656b-4cb1-87c7-569c4cb0ac40"
+				"spark.autotune.trackingId": "d6462487-08d0-4da8-ad68-366f419a87a3"
 			}
 		},
 		"metadata": {
@@ -45,7 +45,7 @@
 				"memory": 28,
 				"automaticScaleJobs": false
 			},
-			"sessionKeepAliveTimeout": 60
+			"sessionKeepAliveTimeout": 90
 		},
 		"cells": [
 			{
@@ -90,7 +90,7 @@
 					}
 				},
 				"source": [
-					"!pip install azure-keyvault==4.2.0"
+					"# !pip install azure-keyvault==4.2.0"
 				],
 				"execution_count": 4
 			},
@@ -108,7 +108,7 @@
 					}
 				},
 				"source": [
-					"!pip install azure-keyvault-secrets==4.6.0"
+					"# !pip install azure-keyvault-secrets==4.6.0"
 				],
 				"execution_count": 5
 			},
@@ -146,10 +146,11 @@
 					"from pyspark.sql.types import StructType, StructField, IntegerType, DoubleType, StringType, ArrayType, DateType, TimestampType\n",
 					"from datetime import datetime, timedelta\n",
 					"\n",
-					"from azure.keyvault.secrets import SecretClient\n",
-					"from azure.identity import DefaultAzureCredential"
+					"from notebookutils import mssparkutils\n",
+					"# from azure.keyvault.secrets import SecretClient\n",
+					"# from azure.identity import DefaultAzureCredential"
 				],
-				"execution_count": 6
+				"execution_count": 31
 			},
 			{
 				"cell_type": "code",
@@ -164,7 +165,7 @@
 					"spark = SparkSession.builder.master('local[*]').appName('CNEOS_Data_Extractor').getOrCreate()\n",
 					"spark"
 				],
-				"execution_count": 7
+				"execution_count": 2
 			},
 			{
 				"cell_type": "markdown",
@@ -189,17 +190,35 @@
 					}
 				},
 				"source": [
-					"container = 'cneosproject'\r\n",
-					"source_full_storage_account_name = \"myazurefreetier.dfs.core.windows.net\"\r\n",
+					"# container = 'cneosproject'\r\n",
+					"# source_full_storage_account_name = \"myazurefreetier.dfs.core.windows.net\"\r\n",
 					"\r\n",
-					"spark.conf.set(f\"spark.storage.synapse.{source_full_storage_account_name}.linkedServiceName\", \"AzureDataLakeStorage\")\r\n",
-					"spark.conf.set(f\"fs.azure.account.auth.type.{source_full_storage_account_name}\", \"SAS\")\r\n",
-					"spark.conf.set(f\"fs.azure.sas.token.provider.type.{source_full_storage_account_name}\", \"com.microsoft.azure.synapse.tokenlibrary.LinkedServiceBasedSASProvider\")\r\n",
+					"# spark.conf.set(f\"spark.storage.synapse.{source_full_storage_account_name}.linkedServiceName\", \"AzureDataLakeStorage\")\r\n",
+					"# spark.conf.set(f\"fs.azure.account.auth.type.{source_full_storage_account_name}\", \"SAS\")\r\n",
+					"# spark.conf.set(f\"fs.azure.sas.token.provider.type.{source_full_storage_account_name}\", \"com.microsoft.azure.synapse.tokenlibrary.LinkedServiceBasedSASProvider\")\r\n",
 					"\r\n",
-					"default_path = 'abfss://' + container + '@' + source_full_storage_account_name + '.dfs.core.windows.net'\r\n",
+					"# default_path = 'abfss://' + container + '@' + source_full_storage_account_name + '.dfs.core.windows.net'\r\n",
 					""
 				],
-				"execution_count": 31
+				"execution_count": 3
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# mssparkutils.fs.listmounts()"
+				],
+				"execution_count": 19
 			},
 			{
 				"cell_type": "code",
@@ -211,9 +230,9 @@
 					}
 				},
 				"source": [
-					"# storage_account = 'myazurefreetier'\n",
-					"# container = 'cneosproject'\n",
-					"# mount_point = '/mnt/files'\n",
+					"storage_account = 'myazurefreetier'\n",
+					"container = 'cneosproject'\n",
+					"mount_point = '/mnt/files'\n",
 					"\n",
 					"# application_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretAppId')\n",
 					"# auth_key = dbutils.secrets.get(scope='AzureKeyVault', key='storageaccountsecret')\n",
@@ -221,15 +240,16 @@
 					"\n",
 					"# endpoint = \"https://login.microsoftonline.com/\" + tenet_id + \"/oauth2/token\"\n",
 					"\n",
-					"# source = \"abfss://\" + container + \"@\" + storage_account + \".dfs.core.windows.net/\"\n",
+					"source = \"abfss://\" + container + \"@\" + storage_account + \".dfs.core.windows.net/\"\n",
 					"\n",
 					"# configs = {\"fs.azure.account.auth.type\": \"OAuth\",\n",
 					"#           \"fs.azure.account.oauth.provider.type\": \"org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider\",\n",
 					"#           \"fs.azure.account.oauth2.client.id\": application_id,\n",
 					"#           \"fs.azure.account.oauth2.client.secret\": auth_key,\n",
-					"#           \"fs.azure.account.oauth2.client.endpoint\": endpoint}"
+					"#           \"fs.azure.account.oauth2.client.endpoint\": endpoint}\n",
+					"configs = {\"linkedService\" : \"AzureDataLakeStorage\"}"
 				],
-				"execution_count": 0
+				"execution_count": 32
 			},
 			{
 				"cell_type": "code",
@@ -241,13 +261,33 @@
 					}
 				},
 				"source": [
-					"# if not any(mount.mountPoint == mount_point for mount in dbutils.fs.mounts()):\n",
-					"#     dbutils.fs.mount(\n",
-					"#       source = source,\n",
-					"#       mount_point = mount_point,\n",
-					"#       extra_configs = configs)"
+					"job_id = mssparkutils.env.getJobId()\n",
+					"if not any(mount.mountPoint == mount_point for mount in mssparkutils.fs.mounts()):\n",
+					"    mssparkutils.fs.mount(\n",
+					"        source,\n",
+					"        mount_point,\n",
+					"        configs\n",
+					"    )"
 				],
-				"execution_count": 0
+				"execution_count": 33
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"fs_path = 'synfs:/'+ job_id + '/mnt/files' "
+				],
+				"execution_count": 35
 			},
 			{
 				"cell_type": "code",
@@ -259,10 +299,10 @@
 					}
 				},
 				"source": [
-					"# %fs\n",
-					"# ls \"mnt/files/\""
+					"%fs\n",
+					"ls 'synfs://root/'"
 				],
-				"execution_count": 17
+				"execution_count": 30
 			},
 			{
 				"cell_type": "code",
@@ -279,7 +319,7 @@
 					"date_max = date - timedelta(days=60)\n",
 					"print(date_min, date_max)"
 				],
-				"execution_count": 18
+				"execution_count": 4
 			},
 			{
 				"cell_type": "markdown",
@@ -314,7 +354,7 @@
 					"        return response.json()\n",
 					"    return None"
 				],
-				"execution_count": 19
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -335,7 +375,7 @@
 					"    'diameter': \"true\"\n",
 					"}"
 				],
-				"execution_count": 20
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
@@ -350,7 +390,7 @@
 					"response = makeAPICall(url, parameters)\n",
 					"response['count']"
 				],
-				"execution_count": 21
+				"execution_count": 7
 			},
 			{
 				"cell_type": "markdown",
@@ -406,7 +446,7 @@
 					"]\n",
 					""
 				],
-				"execution_count": 22
+				"execution_count": 9
 			},
 			{
 				"cell_type": "markdown",
@@ -434,7 +474,7 @@
 					"df = ps.DataFrame(response['data'], columns=columns)\n",
 					"df.head()"
 				],
-				"execution_count": 23
+				"execution_count": 36
 			},
 			{
 				"cell_type": "code",
@@ -448,7 +488,7 @@
 				"source": [
 					"df['Time_of_Close_approach'].unique().count()"
 				],
-				"execution_count": 24
+				"execution_count": 37
 			},
 			{
 				"cell_type": "markdown",
@@ -476,7 +516,7 @@
 					"print(df.shape)\n",
 					"# df.describe()"
 				],
-				"execution_count": 27
+				"execution_count": 38
 			},
 			{
 				"cell_type": "markdown",
@@ -504,7 +544,7 @@
 					"sdf = df.to_spark()\n",
 					"sdf.printSchema()"
 				],
-				"execution_count": 28
+				"execution_count": 39
 			},
 			{
 				"cell_type": "code",
@@ -516,7 +556,7 @@
 					}
 				},
 				"source": [
-					"rawInputPath = default_path + '/rawInput/rawInput.parquet'\n",
+					"rawInputPath = fs_path + '/rawInput/rawInput.parquet'\n",
 					"if os.path.exists(rawInputPath):\n",
 					"    sdf.write.mode('append').parquet(rawInputPath)\n",
 					"    print('Data appended in existing file')\n",
@@ -524,7 +564,7 @@
 					"    sdf.write.mode('overwrite').parquet(rawInputPath)\n",
 					"    print('New Raw Data File Successfully Created in ADLS')"
 				],
-				"execution_count": 33
+				"execution_count": 40
 			},
 			{
 				"cell_type": "code",
@@ -580,7 +620,7 @@
 					"    .withColumn(\"Object\", col(\"Object\").cast(StringType()))\n",
 					"sdf2.show(5)"
 				],
-				"execution_count": 35
+				"execution_count": 41
 			},
 			{
 				"cell_type": "markdown",
@@ -650,7 +690,8 @@
 						"showTitle": false,
 						"nuid": "e7cea3b0-4dd7-4ae9-8255-97bbea209418",
 						"title": ""
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
 					"sdf2 = sdf2.withColumn('Nominal_Approch_distance_km', lit(round(col('Nominal_Approch_distance_au')*149597870.7, 0))) \\\n",
@@ -672,7 +713,7 @@
 					"        .withColumn('Close_Approach_Date_formatted', concat(col('Close_Approach_Date'), lit(':00.000 ± '), lit(col('Close_Approach_Uncertain_Time'))))\n",
 					"display(sdf2)"
 				],
-				"execution_count": 0
+				"execution_count": 42
 			},
 			{
 				"cell_type": "markdown",
@@ -694,13 +735,14 @@
 						"showTitle": false,
 						"nuid": "b709f3f8-92a9-497b-99f1-0025b1a639ce",
 						"title": ""
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
 					"sdf2 = sdf2.fillna(value=-1)\n",
 					"display(sdf2)"
 				],
-				"execution_count": 0
+				"execution_count": 43
 			},
 			{
 				"cell_type": "markdown",
@@ -725,15 +767,15 @@
 					}
 				},
 				"source": [
-					"rawstructuredPath = '/dbfs/mnt/files/structureddata/structuredInput.parquet'\n",
+					"rawstructuredPath = fs_path + '/structureddata/structuredInput.parquet'\n",
 					"if os.path.exists(rawstructuredPath):\n",
-					"    sdf2.toPandas().to_parquet(rawstructuredPath, index=False)\n",
-					"    print('Data appended in existing file')\n",
+					"    sdf2.write.mode('append').parquet(rawstructuredPath)\n",
+					"    print('Data appended in existing Structured data file')\n",
 					"else:\n",
-					"    sdf2.toPandas().to_parquet(rawstructuredPath, index=False)\n",
+					"    sdf2.write.mode('overwrite').parquet(rawstructuredPath)\n",
 					"    print('New Structured Data File Successfully Created in ADLS')"
 				],
-				"execution_count": 0
+				"execution_count": 45
 			},
 			{
 				"cell_type": "code",
@@ -748,7 +790,7 @@
 					"del sdf\n",
 					"sdf = sdf2.alias('sdf')"
 				],
-				"execution_count": 0
+				"execution_count": 46
 			},
 			{
 				"cell_type": "markdown",
@@ -798,14 +840,15 @@
 						"showTitle": false,
 						"nuid": "cfbaa5b5-6a17-4204-a55e-88b591a40bf9",
 						"title": ""
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
 					"master_basic_stats = sdf.select('Id', 'Designation', 'Close_Approach_Date_M', 'Close_Approach_Date_formatted', 'Orbit_Id', 'Nominal_Approch_distance_au', 'Nominal_Approch_distance_km', 'Min_Close_Approach_Distance_au', 'Min_Close_Approach_Distance_km', 'Max_Close_Approach_Distance_au', 'Max_Close_Approach_Distance_km', 'V_Reletive_Kms', 'V_Infinite_Kms', 'Absolute_Magnitude_mag', 'Diameter_Km')\n",
 					"\n",
 					"display(master_basic_stats)"
 				],
-				"execution_count": 0
+				"execution_count": 47
 			},
 			{
 				"cell_type": "code",
@@ -817,15 +860,15 @@
 					}
 				},
 				"source": [
-					"master_basic_stats_path = '/dbfs/mnt/files/processedData/masterBasicStats.parquet'\n",
+					"master_basic_stats_path = fs_path + '/processedData/masterBasicStats.parquet'\n",
 					"if os.path.exists(master_basic_stats_path):\n",
-					"    master_basic_stats.toPandas().to_parquet(master_basic_stats_path, index=False)\n",
+					"    master_basic_stats.write.mode('append').parquet(master_basic_stats_path)\n",
 					"    print('Data appended in existing Processed Master File')\n",
 					"else:\n",
-					"    master_basic_stats.toPandas().to_parquet(master_basic_stats_path, index=False)\n",
+					"    master_basic_stats.write.mode('overwrite').parquet(master_basic_stats_path)\n",
 					"    print('New Master Basic Data File Successfully Created in ADLS')"
 				],
-				"execution_count": 0
+				"execution_count": 49
 			},
 			{
 				"cell_type": "markdown",
@@ -856,7 +899,8 @@
 						"showTitle": false,
 						"nuid": "59936dc2-4ff6-4100-b8b9-4ba106cd1f0b",
 						"title": ""
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
 					"asteroid_summary = sdf.groupBy('Designation')\\\n",
@@ -873,7 +917,7 @@
 					"display(asteroid_summary)\n",
 					""
 				],
-				"execution_count": 0
+				"execution_count": 50
 			},
 			{
 				"cell_type": "code",
@@ -887,7 +931,7 @@
 				"source": [
 					"asteroid_summary.select('Id').distinct().count()==asteroid_summary.count()"
 				],
-				"execution_count": 0
+				"execution_count": 51
 			},
 			{
 				"cell_type": "code",
@@ -899,15 +943,15 @@
 					}
 				},
 				"source": [
-					"asteroid_summary_path = '/dbfs/mnt/files/processedData/asteroidSummary.parquet'\n",
+					"asteroid_summary_path = fs_path + '/processedData/asteroidSummary.parquet'\n",
 					"if os.path.exists(asteroid_summary_path):\n",
-					"    asteroid_summary.toPandas().to_parquet(asteroid_summary_path, index=False)\n",
+					"    asteroid_summary.write.mdoe('append').parquet(asteroid_summary_path)\n",
 					"    print('Data appended in existing Processed Asteroid Summary File')\n",
 					"else:\n",
-					"    asteroid_summary.toPandas().to_parquet(asteroid_summary_path, index=False)\n",
+					"    asteroid_summary.write.mode('overwrite').parquet(asteroid_summary_path)\n",
 					"    print('New Asteroid Summary Data File Successfully Created in ADLS')"
 				],
-				"execution_count": 0
+				"execution_count": 56
 			},
 			{
 				"cell_type": "code",
