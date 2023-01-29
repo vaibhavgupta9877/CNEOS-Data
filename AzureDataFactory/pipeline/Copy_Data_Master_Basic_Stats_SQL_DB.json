@@ -34,6 +34,7 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
+						"preCopyScript": "TRUNCATE TABLE [dbo].[masterbasicstats]",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
 						"tableOption": "autoCreate",
@@ -45,6 +46,18 @@
 						"mappings": [
 							{
 								"source": {
+									"name": "Id",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "Double",
+									"physicalType": "Double"
+								}
+							},
+							{
+								"source": {
 									"name": "Designation",
 									"type": "String",
 									"physicalType": "UTF8"
@@ -53,6 +66,18 @@
 									"name": "Designation",
 									"type": "String",
 									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Close_Approach_Date_M",
+									"type": "DateTime",
+									"physicalType": "DATE"
+								},
+								"sink": {
+									"name": "Close_Approach_Date_M",
+									"type": "DateTime",
+									"physicalType": "DateTime"
 								}
 							},
 							{

@@ -34,6 +34,7 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
+						"preCopyScript": "TRUNCATE TABLE [dbo].[asteroidsummary]",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
 						"tableOption": "autoCreate",
@@ -53,6 +54,17 @@
 									"name": "Designation",
 									"type": "String",
 									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Id",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Last_Approach_Time",
+									"physicalType": "Double"
 								}
 							},
 							{
