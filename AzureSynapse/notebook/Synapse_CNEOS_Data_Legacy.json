@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "d6462487-08d0-4da8-ad68-366f419a87a3"
+				"spark.autotune.trackingId": "64f689b5-686f-4840-8059-9f6041eff0a4"
 			}
 		},
 		"metadata": {
@@ -185,46 +185,6 @@
 				"metadata": {
 					"application/vnd.databricks.v1+cell": {
 						"showTitle": false,
-						"nuid": "6f7abf26-172c-4280-9ad8-2a481caf7969",
-						"title": ""
-					}
-				},
-				"source": [
-					"# container = 'cneosproject'\r\n",
-					"# source_full_storage_account_name = \"myazurefreetier.dfs.core.windows.net\"\r\n",
-					"\r\n",
-					"# spark.conf.set(f\"spark.storage.synapse.{source_full_storage_account_name}.linkedServiceName\", \"AzureDataLakeStorage\")\r\n",
-					"# spark.conf.set(f\"fs.azure.account.auth.type.{source_full_storage_account_name}\", \"SAS\")\r\n",
-					"# spark.conf.set(f\"fs.azure.sas.token.provider.type.{source_full_storage_account_name}\", \"com.microsoft.azure.synapse.tokenlibrary.LinkedServiceBasedSASProvider\")\r\n",
-					"\r\n",
-					"# default_path = 'abfss://' + container + '@' + source_full_storage_account_name + '.dfs.core.windows.net'\r\n",
-					""
-				],
-				"execution_count": 3
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# mssparkutils.fs.listmounts()"
-				],
-				"execution_count": 19
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"application/vnd.databricks.v1+cell": {
-						"showTitle": false,
 						"nuid": "85ede29e-b763-481a-8c00-22eba02967d5",
 						"title": ""
 					}
@@ -234,22 +194,11 @@
 					"container = 'cneosproject'\n",
 					"mount_point = '/mnt/files'\n",
 					"\n",
-					"# application_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretAppId')\n",
-					"# auth_key = dbutils.secrets.get(scope='AzureKeyVault', key='storageaccountsecret')\n",
-					"# tenet_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretTenetId')\n",
-					"\n",
-					"# endpoint = \"https://login.microsoftonline.com/\" + tenet_id + \"/oauth2/token\"\n",
-					"\n",
 					"source = \"abfss://\" + container + \"@\" + storage_account + \".dfs.core.windows.net/\"\n",
 					"\n",
-					"# configs = {\"fs.azure.account.auth.type\": \"OAuth\",\n",
-					"#           \"fs.azure.account.oauth.provider.type\": \"org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider\",\n",
-					"#           \"fs.azure.account.oauth2.client.id\": application_id,\n",
-					"#           \"fs.azure.account.oauth2.client.secret\": auth_key,\n",
-					"#           \"fs.azure.account.oauth2.client.endpoint\": endpoint}\n",
 					"configs = {\"linkedService\" : \"AzureDataLakeStorage\"}"
 				],
-				"execution_count": 32
+				"execution_count": 57
 			},
 			{
 				"cell_type": "code",
@@ -290,19 +239,17 @@
 				"execution_count": 35
 			},
 			{
-				"cell_type": "code",
+				"cell_type": "markdown",
 				"metadata": {
 					"application/vnd.databricks.v1+cell": {
 						"showTitle": false,
-						"nuid": "c8379422-b849-4c15-be4b-eea856c24087",
+						"nuid": "06683569-5bb5-45ef-94fb-2d4976f91544",
 						"title": ""
 					}
 				},
 				"source": [
-					"%fs\n",
-					"ls 'synfs://root/'"
-				],
-				"execution_count": 30
+					"## Triggering Get API Request"
+				]
 			},
 			{
 				"cell_type": "code",
@@ -320,19 +267,6 @@
 					"print(date_min, date_max)"
 				],
 				"execution_count": 4
-			},
-			{
-				"cell_type": "markdown",
-				"metadata": {
-					"application/vnd.databricks.v1+cell": {
-						"showTitle": false,
-						"nuid": "06683569-5bb5-45ef-94fb-2d4976f91544",
-						"title": ""
-					}
-				},
-				"source": [
-					"## Triggering Get API Request"
-				]
 			},
 			{
 				"cell_type": "code",
