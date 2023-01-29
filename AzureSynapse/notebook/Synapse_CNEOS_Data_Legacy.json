@@ -1,0 +1,868 @@
+{
+	"name": "Synapse_CNEOS_Data_Legacy",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "cneosapachepool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "56g",
+			"driverCores": 8,
+			"executorMemory": "56g",
+			"executorCores": 8,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "6feabadb-d4a8-4113-9c7e-3245ec0e50f8"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/f4ccc37d-1601-4c1a-8441-eee88f3252aa/resourceGroups/AzureFreeTierRG/providers/Microsoft.Synapse/workspaces/freesynapsefreetier/bigDataPools/cneosapachepool",
+				"name": "cneosapachepool",
+				"type": "Spark",
+				"endpoint": "https://freesynapsefreetier.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/cneosapachepool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 3,
+				"cores": 8,
+				"memory": 56,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "3783bab7-5ee1-405d-96a9-03cb113f8486",
+						"title": ""
+					}
+				},
+				"source": [
+					"# CNEOS Data Extractor\n",
+					"#### Batch Data Processing\n",
+					"#### Authored By -- Vaibhav Gupta"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "35daebfe-4590-4355-bfd1-d9f208251e07",
+						"title": ""
+					}
+				},
+				"source": [
+					"## Importing Modules"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "ff86145c-7643-4e88-9b0e-b50c2af5dee8",
+						"title": ""
+					}
+				},
+				"source": [
+					"import pandas as pd\n",
+					"import numpy as np\n",
+					"import requests\n",
+					"import json\n",
+					"import os\n",
+					"from pyspark.sql import SparkSession, Row\n",
+					"import pyspark.pandas as ps\n",
+					"from pyspark.sql.functions import udf, col, explode, lit, split, concat, to_timestamp, to_date, date_format, round, trim, count, max, sum, mean, avg\n",
+					"from pyspark.sql.types import StructType, StructField, IntegerType, DoubleType, StringType, ArrayType, DateType, TimestampType\n",
+					"from datetime import datetime, timedelta"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "ef86b830-f8f2-4359-8a5f-2f5adfd8ae36",
+						"title": ""
+					}
+				},
+				"source": [
+					"spark = SparkSession.builder.master('local[*]').appName('CNEOS_Data_Extractor').getOrCreate()\n",
+					"spark"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "4198e363-379b-4124-b8d8-8ec7e1b2dda1",
+						"title": ""
+					}
+				},
+				"source": [
+					"## Mounting Azure Blob Storage/ADLS 2"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "6f7abf26-172c-4280-9ad8-2a481caf7969",
+						"title": ""
+					}
+				},
+				"source": [
+					"dbutils.secrets.listScopes()"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "85ede29e-b763-481a-8c00-22eba02967d5",
+						"title": ""
+					}
+				},
+				"source": [
+					"storage_account = 'myazurefreetier'\n",
+					"container = 'cneosproject'\n",
+					"mount_point = '/mnt/files'\n",
+					"\n",
+					"application_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretAppId')\n",
+					"auth_key = dbutils.secrets.get(scope='AzureKeyVault', key='storageaccountsecret')\n",
+					"tenet_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretTenetId')\n",
+					"\n",
+					"endpoint = \"https://login.microsoftonline.com/\" + tenet_id + \"/oauth2/token\"\n",
+					"\n",
+					"source = \"abfss://\" + container + \"@\" + storage_account + \".dfs.core.windows.net/\"\n",
+					"\n",
+					"configs = {\"fs.azure.account.auth.type\": \"OAuth\",\n",
+					"          \"fs.azure.account.oauth.provider.type\": \"org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider\",\n",
+					"          \"fs.azure.account.oauth2.client.id\": application_id,\n",
+					"          \"fs.azure.account.oauth2.client.secret\": auth_key,\n",
+					"          \"fs.azure.account.oauth2.client.endpoint\": endpoint}"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "b6d1ef6c-591e-4c72-91fd-730702d0d285",
+						"title": ""
+					}
+				},
+				"source": [
+					"if not any(mount.mountPoint == mount_point for mount in dbutils.fs.mounts()):\n",
+					"    dbutils.fs.mount(\n",
+					"      source = source,\n",
+					"      mount_point = mount_point,\n",
+					"      extra_configs = configs)"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "c8379422-b849-4c15-be4b-eea856c24087",
+						"title": ""
+					}
+				},
+				"source": [
+					"%fs\n",
+					"ls \"mnt/files/\""
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "e336c1ea-3b66-4680-af03-96438a290753",
+						"title": ""
+					}
+				},
+				"source": [
+					"date = datetime.today().date()\n",
+					"date_min = date + timedelta(days=59)\n",
+					"date_max = date - timedelta(days=60)\n",
+					"print(date_min, date_max)"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "06683569-5bb5-45ef-94fb-2d4976f91544",
+						"title": ""
+					}
+				},
+				"source": [
+					"## Triggering Get API Request"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "b0517eba-277d-43e0-9b4d-615a4a7c1db2",
+						"title": ""
+					}
+				},
+				"source": [
+					"def makeAPICall(url, parameters):\n",
+					"    try:\n",
+					"        response = requests.get(url, params=parameters)\n",
+					"    except Exception as e:\n",
+					"        return e\n",
+					"\n",
+					"    if response.status_code == 200 and response != None:\n",
+					"        return response.json()\n",
+					"    return None"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "3b951095-bbe7-461d-9e8e-1789a2f0c088",
+						"title": ""
+					}
+				},
+				"source": [
+					"url = \"https://ssd-api.jpl.nasa.gov/cad.api\"\n",
+					"parameters = {\n",
+					"    \"date-min\": \"1900-01-04\",\n",
+					"    \"date-max\": str(date_max),\n",
+					"    \"dist-max\": \"2.5\",\n",
+					"    'fullname': \"true\",\n",
+					"    'diameter': \"true\"\n",
+					"}"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "2cf04bb3-d8cc-4bf9-84a2-8c17d1885282",
+						"title": ""
+					}
+				},
+				"source": [
+					"response = makeAPICall(url, parameters)\n",
+					"response['count']"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "2d8af748-332e-4166-9492-862ef84eb405",
+						"title": ""
+					}
+				},
+				"source": [
+					"## Data Processing/Transformation"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "1390cc56-e9c1-4b47-a021-dce356dac871",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Stating Data Attributes"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "841892a7-9d00-46d2-9eed-4e5de64410a5",
+						"title": ""
+					}
+				},
+				"source": [
+					"columns = [\n",
+					"    'Designation',\n",
+					"    'Orbit_Id',\n",
+					"    'Time_of_Close_approach',\n",
+					"    'Close_Approach_Date',\n",
+					"    'Nominal_Approch_distance_au',\n",
+					"    'Min_Close_Approach_Distance_au',\n",
+					"    'Max_Close_Approach_Distance_au',\n",
+					"    'V_Reletive_Kms',\n",
+					"    'V_Infinite_Kms',\n",
+					"    'Close_Approach_Uncertain_Time',\n",
+					"    'Absolute_Magnitude_mag',\n",
+					"    'Diameter_Km',\n",
+					"    'Diameter_Sigma_Km',\n",
+					"    'Object'\n",
+					"]\n",
+					""
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "22096e2a-4c00-4a08-b468-a6d2a3832af2",
+						"title": ""
+					}
+				},
+				"source": [
+					"### Loading Data to Spark Pandas Dataframe"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "ebb01be8-f75a-46f5-b45a-4bbb668866be",
+						"title": ""
+					}
+				},
+				"source": [
+					"df = ps.DataFrame(response['data'], columns=columns)\n",
+					"df.head()"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "85768d91-9f76-4c02-94fb-93f4db707400",
+						"title": ""
+					}
+				},
+				"source": [
+					"df['Time_of_Close_approach'].unique().count()"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "25964a55-c8ef-4c51-94c0-7a9385094f7d",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Checking stats of raw API Data"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "ad40217a-465b-4653-9864-e5fe68de43be",
+						"title": ""
+					}
+				},
+				"source": [
+					"print(df.shape)\n",
+					"# df.describe()"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "a812d609-e7b9-4d70-9fa8-ae80a68d2303",
+						"title": ""
+					}
+				},
+				"source": [
+					"### Loading Spark Pandas DataFrame to Spark SQL DataFrame"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "3250873a-b5d6-4995-b2c0-62576dd9a900",
+						"title": ""
+					}
+				},
+				"source": [
+					"sdf = df.to_spark()\n",
+					"sdf.printSchema()"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "1fac74e7-f4be-4ee7-b41e-9ca9f727a3bf",
+						"title": ""
+					}
+				},
+				"source": [
+					"rawInputPath = '/dbfs/mnt/files/rawInput/rawInput.parquet'\n",
+					"if os.path.exists(rawInputPath):\n",
+					"    sdf.toPandas().to_parquet(rawInputPath, index=False)\n",
+					"    print('Data appended in existing file')\n",
+					"else:\n",
+					"    sdf.toPandas().to_parquet(rawInputPath, index=False)\n",
+					"    print('New Raw Data File Successfully Created in ADLS')"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "b33c00bb-583a-4a46-8803-9ec9b4e88f2d",
+						"title": ""
+					}
+				},
+				"source": [
+					"%fs\n",
+					"ls \"/mnt/files/rawInput\""
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "5e4daf0d-23db-47b7-919a-d9b8a52d50a2",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Performing Some DataType Conversions"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "3928b278-8cc3-4f4b-a402-f69d1554b29a",
+						"title": ""
+					}
+				},
+				"source": [
+					"sdf2 = sdf.withColumn(\"Id\", col(\"Time_of_Close_approach\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Designation\", col(\"Designation\").cast(StringType())) \\\n",
+					"    .withColumn(\"Orbit_Id\", col(\"Orbit_Id\").cast(StringType())) \\\n",
+					"    .withColumn(\"Close_Approach_Date\", col(\"Close_Approach_Date\").cast(StringType())) \\\n",
+					"    .withColumn(\"Nominal_Approch_distance_au\", col(\"Nominal_Approch_distance_au\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Min_Close_Approach_Distance_au\", col(\"Min_Close_Approach_Distance_au\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Max_Close_Approach_Distance_au\", col(\"Max_Close_Approach_Distance_au\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"V_Reletive_Kms\", col(\"V_Reletive_Kms\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"V_Infinite_Kms\", col(\"V_Infinite_Kms\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Close_Approach_Uncertain_Time\", col(\"Close_Approach_Uncertain_Time\").cast(StringType())) \\\n",
+					"    .withColumn(\"Absolute_Magnitude_mag\", col(\"Absolute_Magnitude_mag\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Diameter_Km\", col(\"Diameter_Km\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Diameter_Sigma_Km\", col(\"Diameter_Sigma_Km\").cast(DoubleType())) \\\n",
+					"    .withColumn(\"Object\", col(\"Object\").cast(StringType()))\n",
+					"sdf2.show(5)"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "e9f5d59c-0476-47f6-95c7-f681b7023314",
+						"title": ""
+					}
+				},
+				"source": [
+					"### Transforming Data Based On Following Conditions\n",
+					"\n",
+					"- ###### Object\n",
+					"\n",
+					"    Object primary designation\n",
+					"- ###### Close-Approach (Close Approach) Date\n",
+					"\n",
+					"    Date and time (TDB) of closest Earth approach. \"Nominal Date\" is given to appropriate precision. The 3-sigma uncertainty in the time is given in the +/- column in days_hours:minutes format (for example, \"2_15:23\" is 2 days, 15 hours, 23 minutes; \"< 00:01\" is less than 1 minute).\n",
+					"    \n",
+					"- ###### Close Approach Distance Nominal (au)/(km)\n",
+					"\n",
+					"    The most likely (Nominal) close-approach distance (Earth center to NEO center), in astronomical units.\n",
+					"- ###### Close Approach Distance Minimum (au)/(km)\n",
+					"\n",
+					"    The minimum possible close-approach distance (Earth center to NEO center), in astronomical units. The minimum possible distance is based on the 3-sigma Earth target-plane error ellipse.\n",
+					"- ###### Close Approach Distance Maximum (au)/(km)\n",
+					"\n",
+					"    The maximum possible close-approach distance (Earth center to NEO center), in astronomical units. The maximum possible distance is based on the 3-sigma Earth target-plane error ellipse.\n",
+					"- ###### V relative (km/s)\n",
+					"\n",
+					"    Object velocity relative to Earth at close-approach.\n",
+					"- ###### V infinity (km/s)\n",
+					"\n",
+					"    Object velocity relative to a massless Earth at close-approach.\n",
+					"- ###### Absolute Magnitute H (mag)\n",
+					"\n",
+					"    Asteroid absolute magnitude (in general, smaller H implies larger asteroid diameter). Undefined for comets.\n",
+					"- ###### Diameter (km)\n",
+					"\n",
+					"    Diameter value when known or a range (min - max) estimated using the asteroid's absolute magnitude (H) and limiting albedos of 0.25 and 0.05.\n",
+					"- ###### au\n",
+					"\n",
+					"    One Astronomical Unit (au) is approximately 150 million kilometers (see glossary for definition).\n",
+					"- ###### LD\n",
+					"\n",
+					"    One Lunar Distance (LD) is approximately 384,000 kilometers (see glossary for definition)."
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "012da177-df2d-4360-a4bd-a14030b0b72e",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Performing Operations on Columns To generate new Columns"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "e7cea3b0-4dd7-4ae9-8255-97bbea209418",
+						"title": ""
+					}
+				},
+				"source": [
+					"sdf2 = sdf2.withColumn('Nominal_Approch_distance_km', lit(round(col('Nominal_Approch_distance_au')*149597870.7, 0))) \\\n",
+					"        .withColumn('Time_of_Close_approach', lit(round(col('Time_of_Close_approach'), 2))) \\\n",
+					"        .withColumn('Nominal_Approch_distance_au', lit(round(col('Nominal_Approch_distance_au'), 5))) \\\n",
+					"        .withColumn('Min_Close_Approach_Distance_au', lit(round(col('Min_Close_Approach_Distance_au'), 5))) \\\n",
+					"        .withColumn('Max_Close_Approach_Distance_au', lit(round(col('Max_Close_Approach_Distance_au'), 5))) \\\n",
+					"        .withColumn('Min_Close_Approach_Distance_km', lit(round(col('Min_Close_Approach_Distance_au')*149597870.7, 0))) \\\n",
+					"        .withColumn('Max_Close_Approach_Distance_km', lit(round(col('Max_Close_Approach_Distance_au')*149597870.7, 0))) \\\n",
+					"        .withColumn('V_Reletive_Kms', lit(round(col('V_Reletive_Kms'), 2))) \\\n",
+					"        .withColumn('V_Infinite_Kms', lit(round(col('V_Infinite_Kms'), 2))) \\\n",
+					"        .withColumn('Designation', trim(col('Designation'))) \\\n",
+					"        .withColumn('Object', trim(col('Object'))) \\\n",
+					"        .withColumn('Diameter_Km', concat(lit(round(((1329 * (10 ** ((-0.2) * col('Absolute_Magnitude_mag'))))/0.25 ** 0.5), 3)), \\\n",
+					"                                          lit(' - '), \\\n",
+					"                                          lit(round(((1329 * (10 ** ((-0.2) * col('Absolute_Magnitude_mag'))))/0.05 ** 0.5), 3)))) \\\n",
+					"        .withColumn('Close_Approach_Date_M', to_date(concat(col('Close_Approach_Date'), lit(':00.0000')), 'yyyy-MMM-dd HH:mm:ss.SSSS')) \\\n",
+					"        .withColumn('Close_Approach_TimeStamp', to_timestamp(concat(col('Close_Approach_Date'), lit(':00.0000')), 'yyyy-MMM-dd HH:mm:ss.SSSS')) \\\n",
+					"        .withColumn('Close_Approach_Date_formatted', concat(col('Close_Approach_Date'), lit(':00.000 ± '), lit(col('Close_Approach_Uncertain_Time'))))\n",
+					"display(sdf2)"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "7adbcb95-497d-483b-bd97-33c98077207a",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Replacing Null Values with -1"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "b709f3f8-92a9-497b-99f1-0025b1a639ce",
+						"title": ""
+					}
+				},
+				"source": [
+					"sdf2 = sdf2.fillna(value=-1)\n",
+					"display(sdf2)"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "de3cd8db-6f6a-4f85-a6f6-b52c9144534e",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Exporting Transformed/Restructured Master Data File To ADLS"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "ff8c855a-dec3-4df1-954f-9dd24f6020d6",
+						"title": ""
+					}
+				},
+				"source": [
+					"rawstructuredPath = '/dbfs/mnt/files/structureddata/structuredInput.parquet'\n",
+					"if os.path.exists(rawstructuredPath):\n",
+					"    sdf2.toPandas().to_parquet(rawstructuredPath, index=False)\n",
+					"    print('Data appended in existing file')\n",
+					"else:\n",
+					"    sdf2.toPandas().to_parquet(rawstructuredPath, index=False)\n",
+					"    print('New Structured Data File Successfully Created in ADLS')"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "ccb14046-cdae-4b69-b611-77b5c870896d",
+						"title": ""
+					}
+				},
+				"source": [
+					"del sdf\n",
+					"sdf = sdf2.alias('sdf')"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "9bcc70e6-6450-4090-a833-ed48ac965e6e",
+						"title": ""
+					}
+				},
+				"source": [
+					"### Deriving Different Data Tables from Master Data"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "4436fd0c-230a-4c8d-a4d1-9623808a72d5",
+						"title": ""
+					}
+				},
+				"source": [
+					"##### Master file having all stats of all astroid data\n",
+					"- Id\n",
+					"- Designation\n",
+					"- Close_Approach_Date_M\n",
+					"- Close_Approach_Date_formatted\n",
+					"- Orbit_Id\n",
+					"- Nominal_Approch_distance_au\n",
+					"- Nominal_Approch_distance_km\n",
+					"- Min_Close_Approach_Distance_au\n",
+					"- Min_Close_Approach_Distance_km\n",
+					"- Max_Close_Approach_Distance_au\n",
+					"- Max_Close_Approach_Distance_km\n",
+					"- V_Reletive_Kms\n",
+					"- V_Infinite_Kms\n",
+					"- Absolute_Magnitude_mag\n",
+					"- Diameter_Km"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "cfbaa5b5-6a17-4204-a55e-88b591a40bf9",
+						"title": ""
+					}
+				},
+				"source": [
+					"master_basic_stats = sdf.select('Id', 'Designation', 'Close_Approach_Date_M', 'Close_Approach_Date_formatted', 'Orbit_Id', 'Nominal_Approch_distance_au', 'Nominal_Approch_distance_km', 'Min_Close_Approach_Distance_au', 'Min_Close_Approach_Distance_km', 'Max_Close_Approach_Distance_au', 'Max_Close_Approach_Distance_km', 'V_Reletive_Kms', 'V_Infinite_Kms', 'Absolute_Magnitude_mag', 'Diameter_Km')\n",
+					"\n",
+					"display(master_basic_stats)"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "884ff3f7-6d3a-43e9-990c-c3939a1dc065",
+						"title": ""
+					}
+				},
+				"source": [
+					"master_basic_stats_path = '/dbfs/mnt/files/processedData/masterBasicStats.parquet'\n",
+					"if os.path.exists(master_basic_stats_path):\n",
+					"    master_basic_stats.toPandas().to_parquet(master_basic_stats_path, index=False)\n",
+					"    print('Data appended in existing Processed Master File')\n",
+					"else:\n",
+					"    master_basic_stats.toPandas().to_parquet(master_basic_stats_path, index=False)\n",
+					"    print('New Master Basic Data File Successfully Created in ADLS')"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "18c22029-9614-4fe5-be2e-1be1cd1305af",
+						"title": ""
+					}
+				},
+				"source": [
+					"#### Extracting Data Asteroid Wise\n",
+					"- Id (Primary Key)\n",
+					"- Designation (Primary Key)\n",
+					"- No_of_Occurances\n",
+					"- Orbit_Id\n",
+					"- Min_Close_Approach_Distance_au\n",
+					"- Max_Close_Approach_Distance_au\n",
+					"- Mena_V_Reletive_Kms\n",
+					"- Mean_Absolute_Magnitude_mag\n",
+					"- Diameter_Km"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "59936dc2-4ff6-4100-b8b9-4ba106cd1f0b",
+						"title": ""
+					}
+				},
+				"source": [
+					"asteroid_summary = sdf.groupBy('Designation')\\\n",
+					"    .agg(\n",
+					"        max(col('Id')).alias('Id'), \\\n",
+					"        count(col('Designation')).alias('No_of_Occurances'),\\\n",
+					"        max('Orbit_Id').alias('Orbit_Id'), \\\n",
+					"        max('Min_Close_Approach_Distance_au').alias('Min_Close_Approach_Distance_au'), \\\n",
+					"        max('Max_Close_Approach_Distance_au').alias('Max_Close_Approach_Distance_au'), \\\n",
+					"        round(mean('V_Reletive_Kms'), 2).alias('Mean_V_Reletive_Kms'), \\\n",
+					"        round(mean('Absolute_Magnitude_mag'), 2).alias('Mean_Absolute_Magnitude_mag'), \\\n",
+					"        max('Diameter_Km').alias('Diameter_Km')        \n",
+					"    )\n",
+					"display(asteroid_summary)\n",
+					""
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "da8197ec-1639-4513-9765-5a3df5bf7415",
+						"title": ""
+					}
+				},
+				"source": [
+					"asteroid_summary.select('Id').distinct().count()==asteroid_summary.count()"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "fb7eba50-0cc9-4faa-9097-ed2e743cd72c",
+						"title": ""
+					}
+				},
+				"source": [
+					"asteroid_summary_path = '/dbfs/mnt/files/processedData/asteroidSummary.parquet'\n",
+					"if os.path.exists(asteroid_summary_path):\n",
+					"    asteroid_summary.toPandas().to_parquet(asteroid_summary_path, index=False)\n",
+					"    print('Data appended in existing Processed Asteroid Summary File')\n",
+					"else:\n",
+					"    asteroid_summary.toPandas().to_parquet(asteroid_summary_path, index=False)\n",
+					"    print('New Asteroid Summary Data File Successfully Created in ADLS')"
+				],
+				"execution_count": 0
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"application/vnd.databricks.v1+cell": {
+						"showTitle": false,
+						"nuid": "94217137-428f-402d-8ce2-1279c705ed11",
+						"title": ""
+					}
+				},
+				"source": [
+					""
+				],
+				"execution_count": 0
+			}
+		]
+	}
+}
