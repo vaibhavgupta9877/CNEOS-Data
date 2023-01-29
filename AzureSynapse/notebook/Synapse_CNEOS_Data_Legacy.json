@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "1b87bdd9-ea13-4e19-ab60-5155b4ed002c"
+				"spark.autotune.trackingId": "f88f09d6-656b-4cb1-87c7-569c4cb0ac40"
 			}
 		},
 		"metadata": {
@@ -192,14 +192,14 @@
 					"container = 'cneosproject'\r\n",
 					"source_full_storage_account_name = \"myazurefreetier.dfs.core.windows.net\"\r\n",
 					"\r\n",
-					"spark.conf.set(f\"spark.storage.synapse.{source_full_storage_account_name}.linkedServiceName\", \"<lINKED SERVICE NAME>\")\r\n",
+					"spark.conf.set(f\"spark.storage.synapse.{source_full_storage_account_name}.linkedServiceName\", \"AzureDataLakeStorage\")\r\n",
 					"spark.conf.set(f\"fs.azure.account.auth.type.{source_full_storage_account_name}\", \"SAS\")\r\n",
 					"spark.conf.set(f\"fs.azure.sas.token.provider.type.{source_full_storage_account_name}\", \"com.microsoft.azure.synapse.tokenlibrary.LinkedServiceBasedSASProvider\")\r\n",
 					"\r\n",
-					"default_path = 'abfss://{container}@{source_full_storage_account_name}.dfs.core.windows.net'\r\n",
+					"default_path = 'abfss://' + container + '@' + source_full_storage_account_name + '.dfs.core.windows.net'\r\n",
 					""
 				],
-				"execution_count": 11
+				"execution_count": 31
 			},
 			{
 				"cell_type": "code",
@@ -211,23 +211,23 @@
 					}
 				},
 				"source": [
-					"storage_account = 'myazurefreetier'\n",
-					"container = 'cneosproject'\n",
-					"mount_point = '/mnt/files'\n",
+					"# storage_account = 'myazurefreetier'\n",
+					"# container = 'cneosproject'\n",
+					"# mount_point = '/mnt/files'\n",
 					"\n",
-					"application_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretAppId')\n",
-					"auth_key = dbutils.secrets.get(scope='AzureKeyVault', key='storageaccountsecret')\n",
-					"tenet_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretTenetId')\n",
+					"# application_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretAppId')\n",
+					"# auth_key = dbutils.secrets.get(scope='AzureKeyVault', key='storageaccountsecret')\n",
+					"# tenet_id = dbutils.secrets.get(scope='AzureKeyVault', key='storageAccountSecretTenetId')\n",
 					"\n",
-					"endpoint = \"https://login.microsoftonline.com/\" + tenet_id + \"/oauth2/token\"\n",
+					"# endpoint = \"https://login.microsoftonline.com/\" + tenet_id + \"/oauth2/token\"\n",
 					"\n",
-					"source = \"abfss://\" + container + \"@\" + storage_account + \".dfs.core.windows.net/\"\n",
+					"# source = \"abfss://\" + container + \"@\" + storage_account + \".dfs.core.windows.net/\"\n",
 					"\n",
-					"configs = {\"fs.azure.account.auth.type\": \"OAuth\",\n",
-					"          \"fs.azure.account.oauth.provider.type\": \"org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider\",\n",
-					"          \"fs.azure.account.oauth2.client.id\": application_id,\n",
-					"          \"fs.azure.account.oauth2.client.secret\": auth_key,\n",
-					"          \"fs.azure.account.oauth2.client.endpoint\": endpoint}"
+					"# configs = {\"fs.azure.account.auth.type\": \"OAuth\",\n",
+					"#           \"fs.azure.account.oauth.provider.type\": \"org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider\",\n",
+					"#           \"fs.azure.account.oauth2.client.id\": application_id,\n",
+					"#           \"fs.azure.account.oauth2.client.secret\": auth_key,\n",
+					"#           \"fs.azure.account.oauth2.client.endpoint\": endpoint}"
 				],
 				"execution_count": 0
 			},
@@ -241,11 +241,11 @@
 					}
 				},
 				"source": [
-					"if not any(mount.mountPoint == mount_point for mount in dbutils.fs.mounts()):\n",
-					"    dbutils.fs.mount(\n",
-					"      source = source,\n",
-					"      mount_point = mount_point,\n",
-					"      extra_configs = configs)"
+					"# if not any(mount.mountPoint == mount_point for mount in dbutils.fs.mounts()):\n",
+					"#     dbutils.fs.mount(\n",
+					"#       source = source,\n",
+					"#       mount_point = mount_point,\n",
+					"#       extra_configs = configs)"
 				],
 				"execution_count": 0
 			},
@@ -259,10 +259,10 @@
 					}
 				},
 				"source": [
-					"%fs\n",
-					"ls \"mnt/files/\""
+					"# %fs\n",
+					"# ls \"mnt/files/\""
 				],
-				"execution_count": 0
+				"execution_count": 17
 			},
 			{
 				"cell_type": "code",
@@ -279,7 +279,7 @@
 					"date_max = date - timedelta(days=60)\n",
 					"print(date_min, date_max)"
 				],
-				"execution_count": 0
+				"execution_count": 18
 			},
 			{
 				"cell_type": "markdown",
@@ -314,7 +314,7 @@
 					"        return response.json()\n",
 					"    return None"
 				],
-				"execution_count": 0
+				"execution_count": 19
 			},
 			{
 				"cell_type": "code",
@@ -335,7 +335,7 @@
 					"    'diameter': \"true\"\n",
 					"}"
 				],
-				"execution_count": 0
+				"execution_count": 20
 			},
 			{
 				"cell_type": "code",
@@ -350,7 +350,7 @@
 					"response = makeAPICall(url, parameters)\n",
 					"response['count']"
 				],
-				"execution_count": 0
+				"execution_count": 21
 			},
 			{
 				"cell_type": "markdown",
@@ -406,7 +406,7 @@
 					"]\n",
 					""
 				],
-				"execution_count": 0
+				"execution_count": 22
 			},
 			{
 				"cell_type": "markdown",
@@ -434,7 +434,7 @@
 					"df = ps.DataFrame(response['data'], columns=columns)\n",
 					"df.head()"
 				],
-				"execution_count": 0
+				"execution_count": 23
 			},
 			{
 				"cell_type": "code",
@@ -448,7 +448,7 @@
 				"source": [
 					"df['Time_of_Close_approach'].unique().count()"
 				],
-				"execution_count": 0
+				"execution_count": 24
 			},
 			{
 				"cell_type": "markdown",
@@ -476,7 +476,7 @@
 					"print(df.shape)\n",
 					"# df.describe()"
 				],
-				"execution_count": 0
+				"execution_count": 27
 			},
 			{
 				"cell_type": "markdown",
@@ -504,7 +504,7 @@
 					"sdf = df.to_spark()\n",
 					"sdf.printSchema()"
 				],
-				"execution_count": 0
+				"execution_count": 28
 			},
 			{
 				"cell_type": "code",
@@ -516,15 +516,15 @@
 					}
 				},
 				"source": [
-					"rawInputPath = '/dbfs/mnt/files/rawInput/rawInput.parquet'\n",
+					"rawInputPath = default_path + '/rawInput/rawInput.parquet'\n",
 					"if os.path.exists(rawInputPath):\n",
-					"    sdf.toPandas().to_parquet(rawInputPath, index=False)\n",
+					"    sdf.write.mode('append').parquet(rawInputPath)\n",
 					"    print('Data appended in existing file')\n",
 					"else:\n",
-					"    sdf.toPandas().to_parquet(rawInputPath, index=False)\n",
+					"    sdf.write.mode('overwrite').parquet(rawInputPath)\n",
 					"    print('New Raw Data File Successfully Created in ADLS')"
 				],
-				"execution_count": 0
+				"execution_count": 33
 			},
 			{
 				"cell_type": "code",
@@ -536,10 +536,10 @@
 					}
 				},
 				"source": [
-					"%fs\n",
-					"ls \"/mnt/files/rawInput\""
+					"# %fs\n",
+					"# ls \"/mnt/files/rawInput\""
 				],
-				"execution_count": 0
+				"execution_count": 34
 			},
 			{
 				"cell_type": "markdown",
@@ -580,7 +580,7 @@
 					"    .withColumn(\"Object\", col(\"Object\").cast(StringType()))\n",
 					"sdf2.show(5)"
 				],
-				"execution_count": 0
+				"execution_count": 35
 			},
 			{
 				"cell_type": "markdown",
