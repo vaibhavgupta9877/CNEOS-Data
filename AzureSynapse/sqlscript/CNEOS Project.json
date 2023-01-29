@@ -1,0 +1,17 @@
+{
+	"name": "CNEOS Project",
+	"properties": {
+		"content": {
+			"query": "",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "cneossqlpool",
+				"poolName": "cneossqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
