@@ -46,6 +46,18 @@
 						"mappings": [
 							{
 								"source": {
+									"name": "Id",
+									"type": "Double",
+									"physicalType": "DOUBLE"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "Double",
+									"physicalType": "Double"
+								}
+							},
+							{
+								"source": {
 									"name": "Designation",
 									"type": "String",
 									"physicalType": "UTF8"
